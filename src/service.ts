@@ -81,48 +81,9 @@ export class WaService {
    */
   async getQrImageUrl(sessionId: string = 'default'): Promise<string> {
     const blob = await this.getQrBlob(sessionId).toPromise();
-    if (!blob) {
-      throw new Error('Failed to get QR code');
-    }
-    return URL.createObjectURL(blob);
+    return URL.createObjectURL(blob!);
   }
 
-  /**
-   * Get QR Code as base64 string
-   * @param sessionId - Session ID (default: 'default')
-   * @returns Promise<string> - Base64 string
-   */
-  async getQrBase64(sessionId: string = 'default'): Promise<string> {
-    try {
-      const blob = await this.getQrBlob(sessionId).toPromise();
-      
-      if (!blob) {
-        throw new Error('Failed to get QR code - empty response');
-      }
-      
-      // Check if blob is actually an image
-      if (!blob.type.startsWith('image/')) {
-        console.warn('QR response is not an image:', blob.type);
-      }
-      
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const base64 = reader.result as string;
-          if (!base64 || base64.length < 100) {
-            reject(new Error('Invalid QR code data'));
-            return;
-          }
-          resolve(base64);
-        };
-        reader.onerror = () => reject(new Error('Failed to read QR code'));
-        reader.readAsDataURL(blob);
-      });
-    } catch (error: any) {
-      console.error('getQrBase64 error:', error);
-      throw error;
-    }
-  }
 
   // ==========================
   // SEND MESSAGE
