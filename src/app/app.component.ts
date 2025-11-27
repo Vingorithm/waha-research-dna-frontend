@@ -1,42 +1,61 @@
-// import { Component } from '@angular/core';
-// import { RouterOutlet } from '@angular/router';
-
-// @Component({
-//   selector: 'app-root',
-//   imports: [RouterOutlet],
-//   templateUrl: './app.component.html',
-//   styleUrl: './app.component.css',
-// })
-// export class AppComponent {
-//   title = 'waha-research-frontend';
-// }
-
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { WaService } from '../service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   title = 'WAHA WhatsApp Sender';
   phoneNumber: string = '';
   message: string = '';
   isLoading: boolean = false;
   responseMessage: string = '';
   responseType: 'success' | 'error' | '' = '';
+  sessionStatus: string = 'Checking...';
 
-  // Konfigurasi WAHA API
-  private wahaApiUrl = 'https://waha.devlike.pro/api/sendText';
-  private wahaApiKey = 'YOUR_API_KEY_HERE'; // Ganti dengan API key Anda
-  private sessionName = 'default'; // Ganti dengan session name Anda
+  constructor(private waService: WaService) {}
 
-  constructor(private http: HttpClient) {}
+  ngOnInit() {
+    this.checkSessionStatus();
+  }
+
+  checkSessionStatus() {
+    this.waService.getStatus().subscribe({
+      next: (response: any) => {
+        this.sessionStatus = response.status || 'Active';
+        console.log('Session status:', response);
+      },
+      error: (error) => {
+        this.sessionStatus = 'Disconnected';
+        console.error('Status check error:', error);
+      },
+    });
+  }
+
+  startSession() {
+    this.isLoading = true;
+    this.waService.startSession().subscribe({
+      next: (response: any) => {
+        this.showResponse('Session berhasil dimulai!', 'success');
+        this.checkSessionStatus();
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Start session error:', error);
+        this.showResponse(
+          `Gagal memulai session: ${error.error?.message || error.message}`,
+          'error'
+        );
+        this.isLoading = false;
+      },
+    });
+  }
 
   onSubmit() {
     // Validasi input
@@ -45,42 +64,28 @@ export class AppComponent {
       return;
     }
 
-    // Format nomor telepon (pastikan dalam format internasional)
+    // Format nomor telepon
     const formattedPhone = this.formatPhoneNumber(this.phoneNumber);
 
     this.isLoading = true;
     this.responseMessage = '';
 
-    // Payload untuk WAHA API
-    const payload = {
-      session: this.sessionName,
-      chatId: formattedPhone + '@c.us',
-      text: this.message,
-    };
-
-    // Kirim request ke WAHA API
-    this.http
-      .post(this.wahaApiUrl, payload, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Api-Key': this.wahaApiKey,
-        },
-      })
-      .subscribe({
-        next: (response) => {
-          this.showResponse('Pesan berhasil dikirim!', 'success');
-          this.resetForm();
-          this.isLoading = false;
-        },
-        error: (error) => {
-          console.error('Error:', error);
-          this.showResponse(
-            `Gagal mengirim pesan: ${error.error?.message || error.message}`,
-            'error'
-          );
-          this.isLoading = false;
-        },
-      });
+    // Kirim pesan melalui service
+    this.waService.sendMessage(formattedPhone, this.message).subscribe({
+      next: (response: any) => {
+        this.showResponse('Pesan berhasil dikirim!', 'success');
+        this.resetForm();
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error:', error);
+        this.showResponse(
+          `Gagal mengirim pesan: ${error.error?.message || error.message}`,
+          'error'
+        );
+        this.isLoading = false;
+      },
+    });
   }
 
   formatPhoneNumber(phone: string): string {
@@ -114,7 +119,5 @@ export class AppComponent {
   resetForm() {
     this.phoneNumber = '';
     this.message = '';
-    this.responseMessage = '';
-    this.responseType = '';
   }
 }
