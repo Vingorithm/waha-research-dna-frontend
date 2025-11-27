@@ -59,7 +59,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
         // PERBAIKAN: harus ===, bukan =
         if (response[0].status === "SCAN_QR_CODE" && !this.showQrCode) {
-          setTimeout(() => this.loadQrCode(), 800);
+          this.loadQrCode();
         }
 
       },
@@ -156,7 +156,7 @@ export class AppComponent implements OnInit, OnDestroy {
         this.showResponse('Session dihentikan!', 'success');
         this.showQrCode = false;
         this.qrCodeUrl = null;
-        this.checkSessionStatus();
+        this.sessionStatus = "SESSION OFF"
         this.isLoading = false;
       },
       error: (error) => {
