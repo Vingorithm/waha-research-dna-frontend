@@ -10,7 +10,8 @@
         class="status-badge" 
         [ngClass]="{
           'status-active': sessionStatus === 'Active' || sessionStatus === 'WORKING',
-          'status-inactive': sessionStatus === 'Disconnected' || sessionStatus === 'STOPPED'
+          'status-inactive': sessionStatus === 'Disconnected' || sessionStatus === 'STOPPED',
+          'status-warning': sessionStatus === 'SCAN_QR_CODE' || sessionStatus === 'STARTING'
         }"
       >
         {{ sessionStatus }}
@@ -31,6 +32,60 @@
       >
         Start Session
       </button>
+      <button 
+        type="button" 
+        class="btn-small btn-qr" 
+        (click)="loadQrCode()"
+        [disabled]="isLoading"
+        *ngIf="sessionStatus === 'SCAN_QR_CODE' || sessionStatus === 'STARTING'"
+      >
+        Load QR Code
+      </button>
+      <button 
+        type="button" 
+        class="btn-small btn-stop" 
+        (click)="stopSession()"
+        [disabled]="isLoading"
+      >
+        Stop Session
+      </button>
+      <button 
+        type="button" 
+        class="btn-small btn-logout" 
+        (click)="logout()"
+        [disabled]="isLoading"
+      >
+        Logout
+      </button>
+    </div>
+
+    <!-- QR Code Display -->
+    <div *ngIf="showQrCode && qrCodeUrl" class="qr-code-container">
+      <h3>Scan QR Code dengan WhatsApp Anda</h3>
+      <img [src]="qrCodeUrl" alt="QR Code" class="qr-code-image" />
+      <p class="qr-help-text">
+        Buka WhatsApp → Linked Devices → Link a Device → Scan QR Code ini
+      </p>
+      <button 
+        type="button" 
+        class="btn-small" 
+        (click)="loadQrCode()"
+        [disabled]="isLoading"
+      >
+        Refresh QR Code
+      </button>
+    </div>
+
+    <!-- No Session Warning -->
+    <div *ngIf="sessionStatus === 'No Session'" class="alert alert-warning">
+      <strong>⚠️ Tidak ada session aktif</strong>
+      <p>Silakan klik tombol "Start Session" untuk memulai koneksi WhatsApp.</p>
+    </div>
+
+    <!-- Scan QR Reminder -->
+    <div *ngIf="(sessionStatus === 'SCAN_QR_CODE' || sessionStatus === 'STARTING') && !showQrCode" class="alert alert-info">
+      <strong>📱 Session menunggu scan QR Code</strong>
+      <p>Klik tombol "Load QR Code" untuk menampilkan QR code.</p>
     </div>
 
     <form (ngSubmit)="onSubmit()" class="form">
