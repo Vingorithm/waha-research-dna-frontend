@@ -29,15 +29,16 @@
         class="btn-small btn-start" 
         (click)="startSession()"
         [disabled]="isLoading"
+        *ngIf="sessionStatus === 'Disconnected'"
       >
         Start Session
       </button>
       <button 
         type="button" 
         class="btn-small btn-qr" 
-        (click)="loadQrCode()"
+        (click)="loadQrCodeClick()"
         [disabled]="isLoading"
-        *ngIf="sessionStatus === 'SCAN_QR_CODE' || sessionStatus === 'STARTING'"
+        *ngIf="sessionStatus === 'SCAN_QR_CODE'"
       >
         Load QR Code
       </button>
@@ -46,6 +47,7 @@
         class="btn-small btn-stop" 
         (click)="stopSession()"
         [disabled]="isLoading"
+        *ngIf="sessionStatus === 'SCAN_QR_CODE'"
       >
         Stop Session
       </button>
@@ -54,6 +56,7 @@
         class="btn-small btn-logout" 
         (click)="logout()"
         [disabled]="isLoading"
+        *ngIf="sessionStatus === 'WORKING'"
       >
         Logout
       </button>
@@ -96,12 +99,11 @@
           id="phoneNumber"
           [(ngModel)]="phoneNumber"
           name="phoneNumber"
-          placeholder="Contoh: 08123456789 atau 628123456789"
+          placeholder="Contoh: 628123456789"
           class="input"
           [disabled]="isLoading"
           required
         />
-        <small class="help-text">Format: 08xxx atau 628xxx</small>
       </div>
 
       <div class="form-group">
