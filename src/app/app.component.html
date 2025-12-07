@@ -16,24 +16,24 @@
       >
         {{ sessionStatus }}
       </span>
-      <button 
+      <!-- <button 
         type="button" 
         class="btn-small" 
         (click)="checkSessionStatus()"
         [disabled]="isLoading"
       >
         Refresh
-      </button>
+      </button> -->
       <button 
         type="button" 
         class="btn-small btn-start" 
         (click)="startSession()"
         [disabled]="isLoading"
-        *ngIf="sessionStatus === 'Disconnected'"
+        *ngIf="sessionStatus === 'STOPPED'"
       >
         Start Session
       </button>
-      <button 
+      <!-- <button 
         type="button" 
         class="btn-small btn-qr" 
         (click)="loadQrCodeClick()"
@@ -41,7 +41,7 @@
         *ngIf="sessionStatus === 'SCAN_QR_CODE'"
       >
         Load QR Code
-      </button>
+      </button> -->
       <button 
         type="button" 
         class="btn-small btn-stop" 
@@ -88,7 +88,7 @@
     <!-- Scan QR Reminder -->
     <div *ngIf="(sessionStatus === 'SCAN_QR_CODE' || sessionStatus === 'STARTING') && !showQrCode" class="alert alert-info">
       <strong>📱 Session menunggu scan QR Code</strong>
-      <p>Klik tombol "Load QR Code" untuk menampilkan QR code.</p>
+      <!-- <p>Klik tombol "Load QR Code" untuk menampilkan QR code.</p> -->
     </div>
 
     <form (ngSubmit)="onSubmit()" class="form">
