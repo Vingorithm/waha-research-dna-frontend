@@ -96,7 +96,6 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
       this.store.setSessionStatus(st);
 
       if (st === "SCAN_QR_CODE") {
-        // ⬇⬇⬇ tambahin ini
         await this.loadQrCode(session);
       }
 
