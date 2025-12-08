@@ -19,7 +19,6 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
 
   title = 'WAHA WhatsApp Sender';
 
-  // Local template mirrors
   phoneNumber = '';
   message = '';
   responseMessage = '';
@@ -27,9 +26,13 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
   qrCodeUrl: SafeUrl | null = null;
   showQrCode = false;
 
-  // From store
   sessionStatus = 'Checking...';
   isLoading = false;
+
+  lastMessageFrom = '';
+  lastMessageText = '';
+  lastMessageName = '';
+  lastMessageNumber = '';
 
   private subs: Subscription[] = [];
   private sse?: EventSource;
@@ -41,9 +44,6 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
-  /* ================================
-        INIT
-  ================================ */
   ngOnInit() {
     this.bindStore();
     this.setupSSE();
@@ -59,9 +59,6 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.sse) this.sse.close();
   }
 
-  /* ================================
-        STORE SUBSCRIPTIONS
-  ================================ */
   private bindStore() {
     this.subs.push(this.store.isLoading$.subscribe(v => this.isLoading = v));
     this.subs.push(this.store.sessionStatus$.subscribe(v => this.sessionStatus = v));
@@ -69,11 +66,13 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
     this.subs.push(this.store.showQrCode$.subscribe(v => this.showQrCode = v));
     this.subs.push(this.store.responseMessage$.subscribe(v => this.responseMessage = v));
     this.subs.push(this.store.responseType$.subscribe(v => this.responseType = v));
+
+    this.subs.push(this.store.lastMessageFrom$.subscribe(v => this.lastMessageFrom = v));
+    this.subs.push(this.store.lastMessageText$.subscribe(v => this.lastMessageText = v));
+    this.subs.push(this.store.lastMessageName$.subscribe(v => this.lastMessageName = v));
+    this.subs.push(this.store.lastMessageNumber$.subscribe(v => this.lastMessageNumber = v));
   }
 
-  /* ================================
-        SSE / REALTIME EVENT LISTENER
-  ================================ */
   setupSSE() {
     if (!isPlatformBrowser(this.platformId)) return;
 
@@ -90,7 +89,7 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
       console.log("STATUS EVENT:", data);
 
       const st = data.status;
-      const session = data.session || "default";  // kalau WAHA kirim nama session
+      const session = data.session || "default";
 
       this.store.setSessionStatus(data.session);
 
@@ -118,6 +117,45 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
         this.store.showQr();
       }
     });
+
+    this.sse.addEventListener("message", (ev: any) => {
+      const payload = JSON.parse(ev.data);
+      console.log("INCOMING MESSAGE EVENT:", payload);
+
+      // Pesan teks
+      const text =
+        payload.text ||
+        payload.body ||
+        payload.message ||
+        '';
+
+      if (!text) {
+        return;
+      }
+
+      // JID pengirim (prioritas: author -> from -> participant)
+      const jidRaw =
+        payload.author ||
+        payload.participant ||
+        payload.from ||
+        payload.chatId ||
+        '';
+
+      // Nomor
+      const number = jidRaw.split('@')[0];
+
+      // Nama
+      const name =
+        payload.senderName ||
+        payload.contactName ||
+        payload.pushName ||
+        payload.notifyName ||
+        (payload._data && payload._data.notifyName) ||
+        '';
+
+      this.store.setLastMessage(jidRaw, text, name, number);
+    });
+
   }
 
   async checkStatus() {
@@ -141,10 +179,6 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-
-  /* ================================
-        BACKEND CONNECTION CHECK
-  ================================ */
   testConnection() {
     this.waService.test().subscribe({
       next: res => console.log("Backend OK:", res),
@@ -152,9 +186,6 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  /* ================================
-        MANUAL QR LOADER (fallback)
-  ================================ */
   async loadQrCode(session: string = "default") {
     if (!isPlatformBrowser(this.platformId)) return;
 
@@ -174,9 +205,6 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  /* ================================
-        SESSION CONTROL
-  ================================ */
   startSession() {
     this.store.setLoading(true);
 
@@ -226,19 +254,11 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  /* ================================
-        SEND MESSAGE
-  ================================ */
   onSubmit() {
     if (!this.phoneNumber || !this.message) {
       this.store.setResponse("Nomor & pesan wajib diisi", "error");
       return;
     }
-
-    // if (!this.waService.isValidPhoneNumber(this.phoneNumber)) {
-    //   this.store.setResponse("Nomor tidak valid", "error");
-    //   return;
-    // }
 
     this.store.setLoading(true);
 

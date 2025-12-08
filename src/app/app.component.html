@@ -2,8 +2,6 @@
   <div class="card">
     <h1>{{ title }}</h1>
     <p class="subtitle">Kirim pesan WhatsApp melalui Backend Spring Boot + WAHA API</p>
-
-    <!-- Session Status -->
     <div class="session-status">
       <span class="status-label">Status Session:</span>
       <span 
@@ -29,7 +27,7 @@
         class="btn-small btn-start" 
         (click)="startSession()"
         [disabled]="isLoading"
-        *ngIf="sessionStatus === 'STOPPED'"
+        *ngIf="sessionStatus === 'STOPPED' || sessionStatus === 'Checking...'"
       >
         Start Session
       </button>
@@ -62,7 +60,6 @@
       </button>
     </div>
 
-    <!-- QR Code Display -->
     <div *ngIf="showQrCode && qrCodeUrl" class="qr-code-container">
       <h3>Scan QR Code dengan WhatsApp Anda</h3>
       <img [src]="qrCodeUrl" alt="QR Code" class="qr-code-image" />
@@ -79,16 +76,39 @@
       </button>
     </div>
 
-    <!-- No Session Warning -->
     <div *ngIf="sessionStatus === 'No Session'" class="alert alert-warning">
       <strong>⚠️ Tidak ada session aktif</strong>
       <p>Silakan klik tombol "Start Session" untuk memulai koneksi WhatsApp.</p>
     </div>
 
-    <!-- Scan QR Reminder -->
     <div *ngIf="(sessionStatus === 'SCAN_QR_CODE' || sessionStatus === 'STARTING') && !showQrCode" class="alert alert-info">
       <strong>📱 Session menunggu scan QR Code</strong>
-      <!-- <p>Klik tombol "Load QR Code" untuk menampilkan QR code.</p> -->
+    </div>
+
+    <div class="last-message-card" *ngIf="(lastMessageText && sessionStatus === 'WORKING')">
+      <div class="last-message-header">
+        <span class="last-message-icon">📩</span>
+        <div class="last-message-title">
+          <span>Pesan Terbaru Masuk</span>
+          <small>Realtime dari WhatsApp</small>
+        </div>
+      </div>
+
+      <div class="last-message-body">
+        <p class="last-message-from">
+          <span class="label">From</span>
+          <span class="value">
+            {{ lastMessageName || lastMessageNumber || lastMessageFrom }}
+            <span *ngIf="lastMessageNumber" class="phone">
+              ({{ lastMessageNumber }})
+            </span>
+          </span>
+        </p>
+
+        <p class="last-message-text">
+          {{ lastMessageText }}
+        </p>
+      </div>
     </div>
 
     <form (ngSubmit)="onSubmit()" class="form">

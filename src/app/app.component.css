@@ -314,3 +314,94 @@ label {
     width: 100%;
   }
 }
+
+.last-message-card {
+  margin-top: 20px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: #eafaf1; /* hijau muda lembut */
+  border: 1px solid rgba(37, 211, 102, 0.35);
+  box-shadow: 0 3px 8px rgba(37, 211, 102, 0.12);
+  animation: slideIn 0.25s ease-out;
+}
+
+.last-message-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.last-message-icon {
+  font-size: 22px;
+}
+
+.last-message-title span {
+  font-weight: 600;
+  color: #128c7e;
+  font-size: 15px;
+}
+
+.last-message-title small {
+  display: block;
+  font-size: 11px;
+  color: #6c757d;
+}
+
+.last-message-body {
+  margin-top: 4px;
+  border-top: 1px dashed rgba(0, 0, 0, 0.06);
+  padding-top: 10px;
+}
+
+.last-message-from {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 13px;
+  margin: 0 0 6px 0;
+}
+
+.last-message-from .label {
+  font-weight: 600;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 11px;
+  background: rgba(0, 0, 0, 0.03);
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.last-message-from .value {
+  font-weight: 500;
+  color: #222;
+}
+
+.last-message-from .phone {
+  color: #666;
+  font-size: 12px;
+  margin-left: 3px;
+}
+
+.last-message-text {
+  margin: 4px 0 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+  font-size: 14px;
+  line-height: 1.4;
+  position: relative;
+}
+
+/* ekor bubble kecil */
+.last-message-text::before {
+  content: '';
+  position: absolute;
+  left: 14px;
+  top: -6px;
+  border-width: 0 7px 7px 7px;
+  border-style: solid;
+  border-color: transparent transparent #ffffff transparent;
+}
