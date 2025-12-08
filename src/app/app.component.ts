@@ -4,8 +4,9 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { WaService } from './service/service';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
-import { Subscription } from 'rxjs';
+import { firstValueFrom, Subscription } from 'rxjs';
 import { AppStore } from './state/app.store';
+import { log } from 'node:console';
 
 @Component({
   selector: 'app-root',
@@ -50,7 +51,7 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    // No polling anymore (real-time SSE)
+    this.checkStatus();
   }
 
   ngOnDestroy() {
@@ -117,6 +118,27 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
         this.store.showQr();
       }
     });
+  }
+
+  async checkStatus() {
+    try {
+      const resp: any = await firstValueFrom(this.waService.getStatus());
+
+      console.log("resp:", resp);
+
+      if (Array.isArray(resp) && resp.length > 0) {
+        const status = resp[0].status;
+        this.store.setSessionStatus(status);
+
+        if (status === "SCAN_QR_CODE") {
+          await this.loadQrCode("default");
+        } else if (status === "WORKING" || status === "CONNECTED") {
+          this.store.hideQr();
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching status:", error);
+    }
   }
 
 
