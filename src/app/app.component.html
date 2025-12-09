@@ -29,7 +29,7 @@
         class="btn-small btn-start" 
         (click)="startSession()"
         [disabled]="isLoading"
-        *ngIf="sessionStatus === 'STOPPED'"
+        *ngIf="sessionStatus === 'STOPPED' || sessionStatus === 'Checking...'"
       >
         Start Session
       </button>
