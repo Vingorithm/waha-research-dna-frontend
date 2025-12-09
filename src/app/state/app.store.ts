@@ -11,7 +11,6 @@ export class AppStore {
     private state$ = new BehaviorSubject<AppStateModel>({ ...initialAppState });
     readonly stateObservable$ = this.state$.asObservable();
 
-    // selectors
     readonly phoneNumber$ = this.select('phoneNumber');
     readonly message$ = this.select('message');
     readonly isLoading$ = this.select('isLoading');
@@ -21,18 +20,20 @@ export class AppStore {
     readonly qrCodeUrl$ = this.select('qrCodeUrl');
     readonly showQrCode$ = this.select('showQrCode');
 
-    // snapshot
+    readonly lastMessageFrom$   = this.select('lastMessageFrom');
+    readonly lastMessageText$   = this.select('lastMessageText');
+    readonly lastMessageName$   = this.select('lastMessageName');
+    readonly lastMessageNumber$ = this.select('lastMessageNumber');
+
     snapshot(): AppStateModel {
         return this.state$.getValue();
     }
 
-    // generic update
     update(patch: Partial<AppStateModel>) {
         const cur = this.snapshot();
         this.state$.next({ ...cur, ...patch });
     }
 
-    // convenience mutators
     setPhoneNumber(v: string) { this.update({ phoneNumber: v }); }
     setMessage(v: string) { this.update({ message: v }); }
     setLoading(flag: boolean) { this.update({ isLoading: flag }); }
@@ -53,7 +54,11 @@ export class AppStore {
     setSessionStatus(status: string) { 
         this.update({ sessionStatus: status }); 
     }
-    setQrCode(url: string | SafeUrl | null) { this.update({ qrCodeUrl: url }); }
+
+    setQrCode(url: string | SafeUrl | null) {
+         this.update({ qrCodeUrl: url }); 
+    }
+
     showQr() { 
         this.update({ showQrCode: true }); 
     }
@@ -69,11 +74,19 @@ export class AppStore {
 
     destroy() { this.state$.complete(); }
 
-    // helper selector
     private select<K extends keyof AppStateModel>(key: K): Observable<AppStateModel[K]> {
         return this.stateObservable$.pipe(
             map(s => s[key]),
             distinctUntilChanged()
         );
+    }
+
+    setLastMessage(from: string, text: string, name?: string, number?: string) {
+        this.update({
+        lastMessageFrom: from,
+        lastMessageText: text,
+        lastMessageName: name || '',
+        lastMessageNumber: number || from.split('@')[0]  // fallback
+        });
     }
 }
