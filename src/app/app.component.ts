@@ -17,23 +17,19 @@ import { AppStore } from './state/app.store';
   styleUrls: ['./app.component.css'],
 })
 export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
-  // inputs bound to template
   phoneNumber = '';
   message = '';
   title = 'WAHA WhatsApp Sender';
 
-  // local UI state mirrors (keperluan template)
   responseMessage = '';
   responseType: 'success' | 'error' | '' = '';
   qrCodeUrl: SafeUrl | null = null;
   showQrCode = false;
 
-  // derived from store (mirrors kept via subscriptions)
   isLoading = false;
   sessionStatus = 'Checking...';
   pollingSub?: Subscription | null = null;
 
-  // interval handle for auto-refresh
   qrRefreshInterval: any = null;
   statusPollingInterval: any = null;
 
@@ -45,11 +41,9 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
     private sanitizer: DomSanitizer,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
-    // this.checkLoginStatus();
   }
 
   ngOnInit() {
-    // subscribe slices needed locally
     this.subs.push(this.store.isLoading$.subscribe((v: boolean) => (this.isLoading = v)));
     this.subs.push(this.store.sessionStatus$.subscribe((v: string) => (this.sessionStatus = v)));
     this.subs.push(this.store.showQrCode$.subscribe((v: boolean) => (this.showQrCode = v)));
@@ -59,26 +53,20 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
     this.subs.push(this.store.responseMessage$.subscribe((v: string) => (this.responseMessage = v)));
     this.subs.push(this.store.responseType$.subscribe((t: 'success' | 'error' | '') => (this.responseType = t)));
 
-    // initial checks
     this.checkSessionStatus();
-    // this.checkLoginStatus();
     this.testConnection();
   }
 
   ngAfterViewInit() {
-    // hanya mulai polling di browser (hindari SSR)
     if (isPlatformBrowser(this.platformId)) {
-      // beri waktu singkat agar view stabil, lalu mulai polling
       setTimeout(() => this.checkLoginStatus(), 1000);
     }
   }
 
 
   ngOnDestroy() {
-    // cleanup subscriptions
     this.subs.forEach(s => s.unsubscribe());
 
-    // clear auto-refresh interval if exists
     if (this.qrRefreshInterval) {
       clearInterval(this.qrRefreshInterval);
       this.qrRefreshInterval = null;
@@ -98,7 +86,6 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
     }, 3000);
   }
 
-  // ---------- helper / connection ----------
   testConnection() {
     this.waService.test().subscribe({
       next: (response) => console.log('Backend connection:', response),
@@ -120,15 +107,13 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   loadQrCodeClick() {
-    // give backend time to initialize then check status & load QR
     setTimeout(() => {
       this.checkSessionStatus();
-      // only load QR on browser
       if (isPlatformBrowser(this.platformId)) {
         this.loadQrCode();
       }
 
-      // setup auto refresh every 30s
+      // lakukan auto refresh setiap 30s
       if (this.qrRefreshInterval) {
         clearInterval(this.qrRefreshInterval);
       }
@@ -144,53 +129,40 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
     }, 3000);
   }
 
-  // ===============================
-  //      LOAD QR (normalize various backend forms)
-  // ===============================
   async loadQrCode(sessionId: string = 'default') {
     if (!isPlatformBrowser(this.platformId)) {
       console.log('QR code loaded successfully.');
-      // SSR — skip loading QR
       return;
     }
 
     this.store.setLoading(true);
-    // hide previous qr while fetching
     this.store.hideQr();
     this.qrCodeUrl = null;
     this.showQrCode = false;
 
     try {
-      // waService.getQrImageUrl can return: data-uri string, raw base64 string, URL string, or Blob
       const raw: any = await this.waService.getQrImageUrl(sessionId);
       console.log('QR raw (first 120 chars):', typeof raw === 'string' ? raw.slice(0, 120) : raw);
 
       let finalUrl: string | SafeUrl | null = null;
 
-      // if backend returns Blob (ResponseType 'blob'), convert to data URL
       if (raw instanceof Blob) {
         finalUrl = await this.blobToDataUrl(raw);
       } else if (typeof raw === 'string') {
         const trimmed = raw.trim();
 
-        // already a data URI?
         if (trimmed.startsWith('data:')) {
           finalUrl = trimmed;
         }
-        // looks like a remote URL
         else if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
           finalUrl = trimmed;
         }
-        // looks like base64 (contains only base64 chars and maybe = at end)
         else if (/^[A-Za-z0-9+/=\s]+$/.test(trimmed)) {
-          // default to PNG; if your backend sends JPEG, change to image/jpeg
           finalUrl = `data:image/png;base64,${trimmed.replace(/\s+/g, '')}`;
         } else {
-          // fallback: use as-is
           finalUrl = trimmed;
         }
       } else {
-        // fallback
         finalUrl = null;
       }
 
@@ -202,7 +174,6 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
       this.store.setQrCode(safe);
       this.store.showQr();
 
-      // also set local mirrors for template compatibility
       this.qrCodeUrl = safe;
       this.showQrCode = true;
     } catch (err) {
@@ -225,9 +196,6 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  // ===============================
-  //      SESSION CONTROL (start/stop/logout) with auto-refresh
-  // ===============================
   startSession(): void {
     this.store.setLoading(true);
     this.store.hideQr();
@@ -237,10 +205,8 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
       next: () => {
         this.store.setResponse('Session dimulai. Memuat QR...', 'success');
 
-        // give backend time to initialize then check status & load QR
         setTimeout(() => {
           this.checkSessionStatus();
-          // only load QR on browser
           if (isPlatformBrowser(this.platformId)) {
             this.loadQrCodeClick();
           }
@@ -299,8 +265,8 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
         this.store.hideQr();
         this.qrCodeUrl = null;
         this.showQrCode = false;
-        this.checkSessionStatus();
         this.store.setLoading(false);
+        window.location.reload();
       },
       error: (error) => {
         console.error('Logout error:', error);
@@ -308,11 +274,9 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
         this.store.setLoading(false);
       }
     });
+
   }
 
-  // ===============================
-  //      SEND MESSAGE
-  // ===============================
   onSubmit() {
     if (!this.phoneNumber || !this.message) {
       this.store.setResponse('Nomor telepon dan pesan tidak boleh kosong!', 'error');

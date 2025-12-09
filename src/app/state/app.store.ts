@@ -11,7 +11,6 @@ export class AppStore {
     private state$ = new BehaviorSubject<AppStateModel>({ ...initialAppState });
     readonly stateObservable$ = this.state$.asObservable();
 
-    // selectors
     readonly phoneNumber$ = this.select('phoneNumber');
     readonly message$ = this.select('message');
     readonly isLoading$ = this.select('isLoading');
@@ -21,18 +20,15 @@ export class AppStore {
     readonly qrCodeUrl$ = this.select('qrCodeUrl');
     readonly showQrCode$ = this.select('showQrCode');
 
-    // snapshot
     snapshot(): AppStateModel {
         return this.state$.getValue();
     }
 
-    // generic update
     update(patch: Partial<AppStateModel>) {
         const cur = this.snapshot();
         this.state$.next({ ...cur, ...patch });
     }
 
-    // convenience mutators
     setPhoneNumber(v: string) { this.update({ phoneNumber: v }); }
     setMessage(v: string) { this.update({ message: v }); }
     setLoading(flag: boolean) { this.update({ isLoading: flag }); }
@@ -69,7 +65,6 @@ export class AppStore {
 
     destroy() { this.state$.complete(); }
 
-    // helper selector
     private select<K extends keyof AppStateModel>(key: K): Observable<AppStateModel[K]> {
         return this.stateObservable$.pipe(
             map(s => s[key]),

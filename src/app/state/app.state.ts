@@ -1,8 +1,5 @@
 import { SafeUrl } from '@angular/platform-browser';
 
-/**
- * Definisi shape state aplikasi.
- */
 export interface AppStateModel {
   phoneNumber: string;
   message: string;
@@ -14,9 +11,6 @@ export interface AppStateModel {
   showQrCode: boolean;
 }
 
-/**
- * Nilai awal state yang digunakan store saat inisialisasi.
- */
 export const initialAppState: AppStateModel = {
   phoneNumber: '',
   message: '',
