@@ -4,14 +4,11 @@
     <p class="subtitle">Kirim pesan WhatsApp melalui Backend Spring Boot + WAHA API</p>
     <div class="session-status">
       <span class="status-label">Status Session:</span>
-      <span 
-        class="status-badge" 
-        [ngClass]="{
+      <span class="status-badge" [ngClass]="{
           'status-active': sessionStatus === 'Active' || sessionStatus === 'WORKING',
           'status-inactive': sessionStatus === 'Disconnected' || sessionStatus === 'STOPPED',
           'status-warning': sessionStatus === 'SCAN_QR_CODE' || sessionStatus === 'STARTING'
-        }"
-      >
+        }">
         {{ sessionStatus }}
       </span>
       <!-- <button 
@@ -22,13 +19,8 @@
       >
         Refresh
       </button> -->
-      <button 
-        type="button" 
-        class="btn-small btn-start" 
-        (click)="startSession()"
-        [disabled]="isLoading"
-        *ngIf="sessionStatus === 'STOPPED' || sessionStatus === 'Checking...'"
-      >
+      <button type="button" class="btn-small btn-start" (click)="startSession()" [disabled]="isLoading"
+        *ngIf="sessionStatus === 'STOPPED' || sessionStatus === 'Checking...'">
         Start Session
       </button>
       <!-- <button 
@@ -40,22 +32,12 @@
       >
         Load QR Code
       </button> -->
-      <button 
-        type="button" 
-        class="btn-small btn-stop" 
-        (click)="stopSession()"
-        [disabled]="isLoading"
-        *ngIf="sessionStatus === 'SCAN_QR_CODE'"
-      >
+      <button type="button" class="btn-small btn-stop" (click)="stopSession()" [disabled]="isLoading"
+        *ngIf="sessionStatus === 'SCAN_QR_CODE'">
         Stop Session
       </button>
-      <button 
-        type="button" 
-        class="btn-small btn-logout" 
-        (click)="logout()"
-        [disabled]="isLoading"
-        *ngIf="sessionStatus === 'WORKING'"
-      >
+      <button type="button" class="btn-small btn-logout" (click)="logout()" [disabled]="isLoading"
+        *ngIf="sessionStatus === 'WORKING'">
         Logout
       </button>
     </div>
@@ -66,12 +48,7 @@
       <p class="qr-help-text">
         Buka WhatsApp → Linked Devices → Link a Device → Scan QR Code ini
       </p>
-      <button 
-        type="button" 
-        class="btn-small" 
-        (click)="loadQrCode()"
-        [disabled]="isLoading"
-      >
+      <button type="button" class="btn-small" (click)="loadQrCode()" [disabled]="isLoading">
         Refresh QR Code
       </button>
     </div>
@@ -81,15 +58,24 @@
       <p>Silakan klik tombol "Start Session" untuk memulai koneksi WhatsApp.</p>
     </div>
 
-    <div *ngIf="(sessionStatus === 'SCAN_QR_CODE' || sessionStatus === 'STARTING') && !showQrCode" class="alert alert-info">
+    <div *ngIf="(sessionStatus === 'SCAN_QR_CODE' || sessionStatus === 'STARTING') && !showQrCode"
+      class="alert alert-info">
       <strong>📱 Session menunggu scan QR Code</strong>
     </div>
 
-    <div class="last-message-card" *ngIf="(lastMessageText && sessionStatus === 'WORKING')">
+    <div class="last-message-card" *ngIf="(lastMessageText && sessionStatus === 'WORKING')" 
+    [ngStyle]="{
+        'background': isGroup ? '#faeaeb' : '#eafaf1',
+        'border': isGroup ? '1px solid rgba(255, 99, 132, 0.35)' : '1px solid rgba(37, 211, 102, 0.35)',
+        'box-shadow': isGroup ? '0 3px 8px rgba(255, 99, 132, 0.12)' : 'none'
+    }">
       <div class="last-message-header">
         <span class="last-message-icon">📩</span>
         <div class="last-message-title">
           <span>Pesan Terbaru Masuk</span>
+          <span *ngIf="isGroup">
+            Dari Group
+          </span>
           <small>Realtime dari WhatsApp</small>
         </div>
       </div>
@@ -114,61 +100,33 @@
     <form (ngSubmit)="onSubmit()" class="form">
       <div class="form-group">
         <label for="phoneNumber">Nomor Telepon</label>
-        <input
-          type="text"
-          id="phoneNumber"
-          [(ngModel)]="phoneNumber"
-          name="phoneNumber"
-          placeholder="Contoh: 628123456789"
-          class="input"
-          [disabled]="isLoading"
-          required
-        />
+        <input type="text" id="phoneNumber" [(ngModel)]="phoneNumber" name="phoneNumber"
+          placeholder="Contoh: 628123456789" class="input" [disabled]="isLoading" required />
       </div>
 
       <div class="form-group">
         <label for="message">Pesan</label>
-        <textarea
-          id="message"
-          [(ngModel)]="message"
-          name="message"
-          rows="5"
-          placeholder="Ketik pesan Anda di sini..."
-          class="input textarea"
-          [disabled]="isLoading"
-          required
-        ></textarea>
+        <textarea id="message" [(ngModel)]="message" name="message" rows="5" placeholder="Ketik pesan Anda di sini..."
+          class="input textarea" [disabled]="isLoading" required></textarea>
       </div>
 
       <div class="button-group">
-        <button
-          type="button"
-          class="btn btn-secondary"
-          (click)="resetForm()"
-          [disabled]="isLoading || (!phoneNumber && !message)"
-        >
+        <button type="button" class="btn btn-secondary" (click)="resetForm()"
+          [disabled]="isLoading || (!phoneNumber && !message)">
           Clear
         </button>
 
-        <button
-          type="submit"
-          class="btn btn-primary"
-          [disabled]="isLoading || !phoneNumber || !message"
-        >
+        <button type="submit" class="btn btn-primary" [disabled]="isLoading || !phoneNumber || !message">
           <span *ngIf="!isLoading">Kirim Pesan</span>
           <span *ngIf="isLoading">Mengirim...</span>
         </button>
       </div>
     </form>
 
-    <div
-      *ngIf="responseMessage"
-      class="alert"
-      [ngClass]="{
+    <div *ngIf="responseMessage" class="alert" [ngClass]="{
         'alert-success': responseType === 'success',
         'alert-error': responseType === 'error'
-      }"
-    >
+      }">
       {{ responseMessage }}
     </div>
   </div>

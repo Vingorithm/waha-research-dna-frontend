@@ -24,6 +24,7 @@ export class AppStore {
     readonly lastMessageText$   = this.select('lastMessageText');
     readonly lastMessageName$   = this.select('lastMessageName');
     readonly lastMessageNumber$ = this.select('lastMessageNumber');
+    readonly isGroup$          = this.select('isGroup');
 
     snapshot(): AppStateModel {
         return this.state$.getValue();
@@ -81,12 +82,13 @@ export class AppStore {
         );
     }
 
-    setLastMessage(from: string, text: string, name?: string, number?: string) {
+    setLastMessage(from: string, text: string, name?: string, number?: string, isGroup?: boolean) {
         this.update({
         lastMessageFrom: from,
         lastMessageText: text,
         lastMessageName: name || '',
-        lastMessageNumber: number || from.split('@')[0]  // fallback
+        lastMessageNumber: number || from.split('@')[0],  // fallback
+        isGroup: isGroup
         });
     }
 }

@@ -319,7 +319,7 @@ label {
   margin-top: 20px;
   padding: 16px 18px;
   border-radius: 12px;
-  background: #eafaf1; /* hijau muda lembut */
+  background: #eafaf1;
   border: 1px solid rgba(37, 211, 102, 0.35);
   box-shadow: 0 3px 8px rgba(37, 211, 102, 0.12);
   animation: slideIn 0.25s ease-out;

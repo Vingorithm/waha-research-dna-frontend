@@ -13,6 +13,7 @@ export interface AppStateModel {
   lastMessageText: string;
   lastMessageName: string;
   lastMessageNumber: string;
+  isGroup: boolean;
 }
 
 export const initialAppState: AppStateModel = {
@@ -27,5 +28,6 @@ export const initialAppState: AppStateModel = {
   lastMessageFrom: '',
   lastMessageText: '',
   lastMessageName: '',
-  lastMessageNumber: ''
+  lastMessageNumber: '',
+  isGroup: false,
 };

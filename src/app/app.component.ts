@@ -6,7 +6,6 @@ import { WaService } from './service/service';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { firstValueFrom, Subscription } from 'rxjs';
 import { AppStore } from './state/app.store';
-import { log } from 'node:console';
 
 @Component({
   selector: 'app-root',
@@ -33,6 +32,7 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
   lastMessageText = '';
   lastMessageName = '';
   lastMessageNumber = '';
+  isGroup = false;
 
   private subs: Subscription[] = [];
   private sse?: EventSource;
@@ -71,6 +71,7 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
     this.subs.push(this.store.lastMessageText$.subscribe(v => this.lastMessageText = v));
     this.subs.push(this.store.lastMessageName$.subscribe(v => this.lastMessageName = v));
     this.subs.push(this.store.lastMessageNumber$.subscribe(v => this.lastMessageNumber = v));
+    this.subs.push(this.store.isGroup$.subscribe(v => this.isGroup = v));
   }
 
   setupSSE() {
@@ -153,7 +154,11 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
         (payload._data && payload._data.notifyName) ||
         '';
 
-      this.store.setLastMessage(jidRaw, text, name, number);
+      const isGroup = payload.participant ? true : false;
+
+      console.log("Dari group", payload.participant, "=>", isGroup);
+
+      this.store.setLastMessage(jidRaw, text, name, number, isGroup);
     });
 
   }
